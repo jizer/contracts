@@ -464,7 +464,7 @@ contract TokenBound is Ownable {
     }
     receive() external payable {}
 
-    function safeTransferETHorTrx(address to, uint value) internal isManager {
+    function safeTransferETH(address to, uint value) internal isManager {
         (bool success,) = to.call{value:value}(new bytes(0));
         require(success, 'TransferHelper: ETHorTRX_TRANSFER_FAILED');
     }
@@ -506,7 +506,7 @@ contract TokenBound is Ownable {
                 emit MintToken(address(this), _amount);
                 uint256 eOut = stdSwap(_amount,_minAmountOut);
                 emit SwapToken(address(this), eOut,"mint to eth or trx");
-                safeTransferETHorTrx(_to,eOut);
+                safeTransferETH(_to,eOut);
                 emit TransferToken(_to, eOut);
                 // deleteItems(mid);
             }

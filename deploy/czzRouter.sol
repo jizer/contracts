@@ -145,10 +145,6 @@ interface IUniswapV2Router02 is IUniswapV2Router01 {
     ) external;
 }
 
-
-// pragma solidity ^0.5.0;
-
-
 interface IOneSplit {
     
     function getExpectedReturn(
@@ -193,8 +189,6 @@ interface IOneSplit {
         payable
         returns(uint256 returnAmount);
 }
-
-pragma solidity ^0.6.6;
 
 interface IRouter {
     function getAddress() external returns(address ads); 
@@ -349,12 +343,12 @@ library SafeMath {
     }
 }
 
-contract BoundRouterOfTrx is IRouter{
+contract BoundRouterOfEth0 is IRouter{
     
     using SafeMath for uint256;
     // using SafeERC20 for IERC20;
     
-    address internal constant CONTRACT_ADDRESS = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
+    address internal constant CONTRACT_ADDRESS = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;  // uniswap router_v2
     IUniswapV2Router02 internal uniswap;
      
     constructor() public {
@@ -455,6 +449,7 @@ contract BoundRouterOfEth is IRouter{
             5,
             0
             );
+
         return oneInch.swap(IERC20(_srcToken),
                                        IERC20(WETH_ADDRESS),
                                        _srcAmount,
