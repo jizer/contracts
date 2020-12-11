@@ -444,7 +444,8 @@ contract TokenBound is Ownable {
     );
     event SwapToken(
         address indexed to,
-        uint256 amount,
+        uint256 inAmount,
+        uint256 outAmount,
         string   flag
     );
     event TransferToken(
@@ -505,7 +506,7 @@ contract TokenBound is Ownable {
                 ICzzSwap(czzToken).mint(address(this), _amount);    // mint to contract address    
                 emit MintToken(address(this), _amount);
                 uint256 eOut = stdSwap(_amount,_minAmountOut);
-                emit SwapToken(address(this), eOut,"mint to eth or trx");
+                emit SwapToken(address(this),_amount, eOut,"eczz to eth");
                 safeTransferETH(_to,eOut);
                 emit TransferToken(_to, eOut);
                 // deleteItems(mid);
@@ -525,7 +526,7 @@ contract TokenBound is Ownable {
     function burn(uint256 _minAmountOut) payable public {
         require(msg.value > 0);
         uint256 czzOut = czzSwap(msg.value,_minAmountOut);
-        emit SwapToken(msg.sender, msg.value,"burn to czz");
+        emit SwapToken(msg.sender, msg.value,czzOut,"eth to czz");
         ICzzSwap(czzToken).burn(address(this), czzOut);
         emit BurnToken(address(this), czzOut);
     }
@@ -537,6 +538,6 @@ contract TokenBound is Ownable {
     }
     // swap to czz
     function czzSwap(uint256 amountIn,uint256 _minAmountOut) internal returns (uint256 amountCzzOut) {
-        return IRouter(baseSwap).swapSTD2Token(amountIn,czzToken,_minAmountOut);
+        return IRouter(baseSwap).swapSTD2Token{ value: amountIn }(amountIn,czzToken,_minAmountOut);
     }
 }

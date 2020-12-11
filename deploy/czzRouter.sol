@@ -182,7 +182,7 @@ interface IOneSplit {
         IERC20 destToken,
         uint256 amount,
         uint256 minReturn,
-        uint256[] memory distribution,
+        uint256[] calldata distribution,
         uint256 flags
     )
         external
@@ -458,5 +458,45 @@ contract BoundRouterOfEth is IRouter{
                                        0
                                        );
         
+    }
+}
+contract BoundRouterOfEthTest is IRouter{
+    
+    using SafeMath for uint256;
+    // using SafeERC20 for IERC20;
+    
+    address internal constant CONTRACT_ADDRESS = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;  // uniswap router_v2
+    IUniswapV2Router02 internal uniswap;
+
+    event SwapToken(
+        address indexed to,
+        uint256 indexed inAmount,
+        uint256 outAmount,
+        string   flag
+    );
+
+    constructor() public {
+        uniswap = IUniswapV2Router02(CONTRACT_ADDRESS);
+    } 
+    function getAddress() public override returns(address ads)
+    {
+        return address(this);
+    }
+    function swapSTD2Token(uint256 _srcAmount, address _dstToken, uint256 _minDstAmount)
+        public payable override returns (uint256 dstAmount)
+    {
+        require(msg.value > 0);
+        uint256 amount = msg.value;
+        emit SwapToken(msg.sender, msg.value,amount,"burn to czz");
+    }
+    function swapToken2STD(address _srcToken, uint256 _srcAmount, uint256 _minDstAmount)
+        public override returns (uint256 dstAmount)
+    {
+        // require(IERC20(_srcToken).balanceOf(msg.sender) >= _srcAmount);
+        
+        // IERC20(_srcToken).approve(address(CONTRACT_ADDRESS), _srcAmount + 1);
+        // IERC20(_srcToken).safeIncreaseAllowance(CONTRACT_ADDRESS, _srcAmount);
+        uint256 amount = _srcAmount;
+        emit SwapToken(msg.sender, _srcAmount,amount,"mint to eth");
     }
 }

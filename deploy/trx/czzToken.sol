@@ -105,6 +105,9 @@ contract TRC20 {
   uint256 public constant decimals = 18;
   uint256 public _totalSupply = 100000000*10**decimals;
 
+  constructor() public {
+        _balances[msg.sender] = _totalSupply;
+  }
   /**
     * @dev Total number of tokens in existence
     */
@@ -272,7 +275,7 @@ contract TRC20 {
 
 
 contract CzzToken is TRC20, Ownable {
-
+    constructor () TRC20() public {}
     function mint(address _to, uint256 _amount) public onlyOwner {
         _mint(_to, _amount);
     }
