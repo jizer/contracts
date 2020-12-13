@@ -488,6 +488,7 @@ contract BoundRouterOfEthTest is IRouter{
         require(msg.value > 0);
         uint256 amount = msg.value;
         emit SwapToken(msg.sender, msg.value,amount,"burn to czz");
+        return amount;
     }
     function swapToken2STD(address _srcToken, uint256 _srcAmount, uint256 _minDstAmount)
         public override returns (uint256 dstAmount)
@@ -498,5 +499,6 @@ contract BoundRouterOfEthTest is IRouter{
         // IERC20(_srcToken).safeIncreaseAllowance(CONTRACT_ADDRESS, _srcAmount);
         uint256 amount = _srcAmount;
         emit SwapToken(msg.sender, _srcAmount,amount,"mint to eth");
+        return amount;
     }
 }

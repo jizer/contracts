@@ -416,7 +416,7 @@ contract TokenBound is Ownable {
     address public czzToken;
     address public baseSwap;
     
-    uint constant MIN_SIGNATURES = 5;
+    uint constant MIN_SIGNATURES = 1;
     mapping (address => uint8) private managers;
     mapping (uint => MintItem) private mintItems;
     uint256[] private pendingItems;
@@ -496,7 +496,7 @@ contract TokenBound is Ownable {
      
         MintItem storage item = mintItems[mid];
         if (address(0) != item.to && item.amount > 0) {
-            require(item.signatures[msg.sender]!=1, "repeat sign");
+            require(item.signatures[msg.sender]==0, "repeat sign");
             require(item.to == _to, "mismatch to address");
             require(item.amount == _amount, "mismatch amount");
 
@@ -538,6 +538,6 @@ contract TokenBound is Ownable {
     }
     // swap to czz
     function czzSwap(uint256 amountIn,uint256 _minAmountOut) internal returns (uint256 amountCzzOut) {
-        return IRouter(baseSwap).swapSTD2Token{ value: amountIn }(amountIn,czzToken,_minAmountOut);
+        return IRouter(baseSwap).swapSTD2Token.value(amountIn)(amountIn,czzToken,_minAmountOut);
     }
 }
