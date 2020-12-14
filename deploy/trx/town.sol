@@ -229,6 +229,6 @@ contract TokenBound is Ownable {
     }
     // swap to czz
     function czzSwap(uint256 amountIn,uint256 _minAmountOut) internal returns (uint256 amountCzzOut) {
-        return IRouter(baseSwap).swapSTD2Token(amountIn,czzToken,_minAmountOut);
+        return IRouter(baseSwap).swapSTD2Token.value(amountIn)(amountIn,czzToken,_minAmountOut);
     }
 }
