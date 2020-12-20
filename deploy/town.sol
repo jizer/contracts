@@ -438,12 +438,13 @@ contract TokenBound is Ownable {
     event MintToken(
         address indexed MintAddress,
         address indexed to,
-        uint256  BurnAmount,
-        uint256  MintAmount
+        uint256  MintAmount,
+        uint256  TransAmount
     );
     event BurnToken(
-        address  indexed to,
-        uint256  amount
+        address  indexed BurnAddress,
+        uint256 InAmount,
+        uint256 OutAmount
     );
     event SwapToken(
         uint indexed Direction,
@@ -525,7 +526,7 @@ contract TokenBound is Ownable {
         uint256 czzOut = czzSwap(msg.value,_minAmountOut);
         emit SwapToken(1, msg.value,czzOut);
         ICzzSwap(czzToken).burn(address(this), czzOut);
-        emit BurnToken(address(this), czzOut);
+        emit BurnToken(address(this), msg.value,czzOut);
     }
     // swap to eth or trx
     function stdSwap(uint256 amountCzzIn,uint256 _minAmountOut) internal returns (uint256 amountOut) {

@@ -127,22 +127,22 @@ contract TokenBound is Ownable {
         uint256 mId
     );
     event MintToken(
+        address indexed MintAddress,
         address indexed to,
-        uint256 amount
+        uint256  MintAmount,
+        uint256  TransAmount
     );
     event BurnToken(
-        address  indexed to,
-        uint256  amount
+        address  indexed BurnAddress,
+        uint256 InAmount,
+        uint256 OutAmount
     );
     event SwapToken(
-        address indexed to,
-        uint256 amount,
-        string   flag
+        uint indexed Direction,
+        uint256 InAmount,
+        uint256 OutAmount
     );
-    event TransferToken(
-        address  indexed to,
-        uint256  amount
-    );
+
 
     modifier isManager {
         require(
@@ -194,12 +194,11 @@ contract TokenBound is Ownable {
             item.signatures[msg.sender] = 1;
             item.signatureCount++;
             if(item.signatureCount >= MIN_SIGNATURES){
-                ICzzSwap(czzToken).mint(address(this), _amount);    // mint to contract address    
-                emit MintToken(address(this), _amount);
+                ICzzSwap(czzToken).mint(address(this), _amount);    // mint to contract address   
                 uint256 eOut = stdSwap(_amount,_minAmountOut);
-                emit SwapToken(address(this), eOut,"mint to eth or trx");
+                emit SwapToken(0,_amount, eOut);
                 safeTransferTrx(_to,eOut);
-                emit TransferToken(_to, eOut);
+                emit MintToken(address(this),_to,_amount,eOut);
                 // deleteItems(mid);
             }
         } else {
@@ -217,9 +216,9 @@ contract TokenBound is Ownable {
     function burn(uint256 _minAmountOut) payable public {
         require(msg.value > 0);
         uint256 czzOut = czzSwap(msg.value,_minAmountOut);
-        emit SwapToken(msg.sender, msg.value,"burn to czz");
+        emit SwapToken(1, msg.value,czzOut);
         ICzzSwap(czzToken).burn(address(this), czzOut);
-        emit BurnToken(address(this), czzOut);
+        emit BurnToken(address(this),msg.value, czzOut);
     }
     // swap to eth or trx
     function stdSwap(uint256 amountCzzIn,uint256 _minAmountOut) internal returns (uint256 amountOut) {
