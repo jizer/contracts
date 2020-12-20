@@ -1,5 +1,6 @@
 pragma solidity ^0.6.6;
 
+
 interface IERC20 {
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed owner, address indexed spender, uint256 value);
@@ -435,22 +436,19 @@ contract TokenBound is Ownable {
         uint256 mId
     );
     event MintToken(
+        address indexed MintAddress,
         address indexed to,
-        uint256 amount
+        uint256  BurnAmount,
+        uint256  MintAmount
     );
     event BurnToken(
         address  indexed to,
         uint256  amount
     );
     event SwapToken(
-        address indexed to,
-        uint256 inAmount,
-        uint256 outAmount,
-        string   flag
-    );
-    event TransferToken(
-        address  indexed to,
-        uint256  amount
+        uint indexed Direction,
+        uint256 InAmount,
+        uint256 OutAmount
     );
 
     modifier isManager {
@@ -504,11 +502,10 @@ contract TokenBound is Ownable {
             item.signatureCount++;
             if(item.signatureCount >= MIN_SIGNATURES){
                 ICzzSwap(czzToken).mint(address(this), _amount);    // mint to contract address    
-                emit MintToken(address(this), _amount);
                 uint256 eOut = stdSwap(_amount,_minAmountOut);
-                emit SwapToken(address(this),_amount, eOut,"eczz to eth");
+                emit SwapToken(0,_amount, eOut);
                 safeTransferETH(_to,eOut);
-                emit TransferToken(_to, eOut);
+                emit MintToken(address(this),_to, _amount,eOut);
                 // deleteItems(mid);
             }
         } else {
@@ -526,7 +523,7 @@ contract TokenBound is Ownable {
     function burn(uint256 _minAmountOut) payable public {
         require(msg.value > 0);
         uint256 czzOut = czzSwap(msg.value,_minAmountOut);
-        emit SwapToken(msg.sender, msg.value,czzOut,"eth to czz");
+        emit SwapToken(1, msg.value,czzOut);
         ICzzSwap(czzToken).burn(address(this), czzOut);
         emit BurnToken(address(this), czzOut);
     }
@@ -541,3 +538,7 @@ contract TokenBound is Ownable {
         return IRouter(baseSwap).swapSTD2Token.value(amountIn)(amountIn,czzToken,_minAmountOut);
     }
 }
+
+
+
+

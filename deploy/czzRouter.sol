@@ -469,10 +469,9 @@ contract BoundRouterOfEthTest is IRouter{
     IUniswapV2Router02 internal uniswap;
 
     event SwapToken(
-        address indexed to,
+        uint indexed direction,
         uint256 indexed inAmount,
-        uint256 outAmount,
-        string   flag
+        uint256 outAmount
     );
 
     constructor() public {
@@ -487,7 +486,7 @@ contract BoundRouterOfEthTest is IRouter{
     {
         require(msg.value > 0);
         uint256 amount = msg.value;
-        emit SwapToken(msg.sender, msg.value,amount,"burn to czz");
+        emit SwapToken(0, msg.value,amount);
         return amount;
     }
     function swapToken2STD(address _srcToken, uint256 _srcAmount, uint256 _minDstAmount)
@@ -498,7 +497,9 @@ contract BoundRouterOfEthTest is IRouter{
         // IERC20(_srcToken).approve(address(CONTRACT_ADDRESS), _srcAmount + 1);
         // IERC20(_srcToken).safeIncreaseAllowance(CONTRACT_ADDRESS, _srcAmount);
         uint256 amount = _srcAmount;
-        emit SwapToken(msg.sender, _srcAmount,amount,"mint to eth");
+        emit SwapToken(1, _srcAmount,amount);
         return amount;
     }
 }
+
+
