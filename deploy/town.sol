@@ -26,6 +26,8 @@ interface IRouter {
         external payable returns (uint256 dstAmount);
     function swapToken2STD(address _srcToken, uint256 _srcAmount, uint256 _minDstAmount)
         external returns (uint256 dstAmount);
+    function swapToken2Token(address _srcToken, uint256 _srcAmount,address _dstToken, uint256 _minDstAmount)
+        external returns (uint256 dstAmount);
 }
 
 /*
@@ -420,6 +422,7 @@ contract TokenBound is Ownable {
     uint constant MIN_SIGNATURES = 1;
     mapping (address => uint8) private managers;
     mapping (uint => MintItem) private mintItems;
+    mapping (address => uint8) private toTokens;
     uint256[] private pendingItems;
 
     struct MintItem {
@@ -443,6 +446,7 @@ contract TokenBound is Ownable {
     );
     event BurnToken(
         address  indexed BurnAddress,
+        address MintAddress,
         uint256 InAmount,
         uint256 OutAmount
     );
@@ -469,6 +473,12 @@ contract TokenBound is Ownable {
         require(success, 'TransferHelper: ETHorTRX_TRANSFER_FAILED');
     }
     
+    function addToken(address token) public onlyOwner{
+        toTokens[token] = 1;
+    }
+    function removeToken(address token) public onlyOwner {
+        toTokens[token] = 0;
+    }
     function addManager(address manager) public onlyOwner{
         managers[manager] = 1;
     }
@@ -488,9 +498,10 @@ contract TokenBound is Ownable {
         // pendingItems.length--;
         // delete mintItems[mid];
     }
-    function mint(address _to, uint256 _amount,uint256 _minAmountOut,uint256 mid) payable public isManager {
+    function mint(address dstAddress,address _to, uint256 _amount,uint256 _minAmountOut,uint256 mid) payable public isManager {
         require(address(0) != _to);
         require(_amount > 0);
+        require(toTokens[dstAddress]==1);
         // require(address(this).balance >= _amount);
      
         MintItem storage item = mintItems[mid];
@@ -503,7 +514,7 @@ contract TokenBound is Ownable {
             item.signatureCount++;
             if(item.signatureCount >= MIN_SIGNATURES){
                 ICzzSwap(czzToken).mint(address(this), _amount);    // mint to contract address    
-                uint256 eOut = stdSwap(_amount,_minAmountOut);
+                uint256 eOut = czz2TokenSwap(dstAddress,_amount,_minAmountOut);
                 emit SwapToken(0,_amount, eOut);
                 safeTransferETH(_to,eOut);
                 emit MintToken(address(this),_to, _amount,eOut);
@@ -521,12 +532,12 @@ contract TokenBound is Ownable {
             emit MintItemCreated(msg.sender, _to, _amount, mid);
         }
     }
-    function burn(uint256 _minAmountOut) payable public {
+    function burn(address dstAddress, uint256 _minAmountOut) payable public {
         require(msg.value > 0);
         uint256 czzOut = czzSwap(msg.value,_minAmountOut);
         emit SwapToken(1, msg.value,czzOut);
         ICzzSwap(czzToken).burn(address(this), czzOut);
-        emit BurnToken(address(this), msg.value,czzOut);
+        emit BurnToken(address(this),dstAddress, msg.value,czzOut);
     }
     // swap to eth or trx
     function stdSwap(uint256 amountCzzIn,uint256 _minAmountOut) internal returns (uint256 amountOut) {
@@ -535,8 +546,13 @@ contract TokenBound is Ownable {
         return IRouter(baseSwap).swapToken2STD(czzToken,amountCzzIn,_minAmountOut);
     }
     // swap to czz
-    function czzSwap(uint256 amountIn,uint256 _minAmountOut) internal returns (uint256 amountCzzOut) {
-        return IRouter(baseSwap).swapSTD2Token.value(amountIn)(amountIn,czzToken,_minAmountOut);
+    function czzSwap(uint256 amountIn,uint256 minAmountOut) internal returns (uint256 amountCzzOut) {
+        return IRouter(baseSwap).swapSTD2Token.value(amountIn)(amountIn,czzToken,minAmountOut);
+    }
+    function czz2TokenSwap(address dstToken,uint256 amountCzzIn,uint256 _minAmountOut) internal returns (uint256 tokenAmountOut) {
+        address swapAddress = IRouter(baseSwap).getAddress();
+        ICzzSwap(czzToken).approve(swapAddress, amountCzzIn);
+        return IRouter(baseSwap).swapToken2Token(czzToken,amountCzzIn,dstToken,_minAmountOut);
     }
 }
 

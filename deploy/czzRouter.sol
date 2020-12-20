@@ -198,6 +198,8 @@ interface IRouter {
         external payable returns (uint256 dstAmount);
     function swapToken2STD(address _srcToken, uint256 _srcAmount, uint256 _minDstAmount)
         external returns (uint256 dstAmount);
+    function swapToken2Token(address _srcToken, uint256 _srcAmount,address _dstToken, uint256 _minDstAmount)
+        external returns (uint256 dstAmount);
 }
 
 library SafeMath {
@@ -398,6 +400,10 @@ contract BoundRouterOfEth0 is IRouter{
         require(amounts.length >= 2);
         return amounts[amounts.length - 1];
     }
+    function swapToken2Token(address _srcToken, uint256 _srcAmount,address _dstToken, uint256 _minDstAmount)
+        public override returns (uint256 dstAmount) {
+            return 0;
+    }
 }
 contract BoundRouterOfEth is IRouter{
     
@@ -459,6 +465,30 @@ contract BoundRouterOfEth is IRouter{
                                        );
         
     }
+    function swapToken2Token(address _srcToken, uint256 _srcAmount,address _dstToken, uint256 _minDstAmount)
+        public override returns (uint256 dstAmount)
+    {
+        require(IERC20(_srcToken).balanceOf(msg.sender) >= _srcAmount);
+        
+        // IERC20(_srcToken).approve(address(CONTRACT_ADDRESS), _srcAmount + 1);
+        // IERC20(_srcToken).safeIncreaseAllowance(CONTRACT_ADDRESS, _srcAmount);
+        (uint256 returnAmount,uint256[] memory distribution) = oneInch.getExpectedReturn(
+            IERC20(_srcToken),
+            IERC20(_dstToken),
+            _srcAmount,
+            5,
+            0
+            );
+
+        return oneInch.swap(IERC20(_srcToken),
+                                       IERC20(_dstToken),
+                                       _srcAmount,
+                                       returnAmount,
+                                       distribution,
+                                       0
+                                       );
+        
+    }
 }
 contract BoundRouterOfEthTest is IRouter{
     
@@ -499,6 +529,10 @@ contract BoundRouterOfEthTest is IRouter{
         uint256 amount = _srcAmount;
         emit SwapToken(1, _srcAmount,amount);
         return amount;
+    }
+    function swapToken2Token(address _srcToken, uint256 _srcAmount,address _dstToken, uint256 _minDstAmount)
+        public override returns (uint256 dstAmount) {
+            return 0;
     }
 }
 
